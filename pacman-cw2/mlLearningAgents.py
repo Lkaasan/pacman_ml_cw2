@@ -253,15 +253,31 @@ class QLearnAgent(Agent):
             The action to take
         """
         # The data we have about the state of the game
-        
+        location = state.getPacmanPosition()
         legal = state.getLegalPacmanActions()
         if Directions.STOP in legal:
             legal.remove(Directions.STOP)
             
         if self.alpha != 0:
             if util.flipCoin(self.epsilon):
-                action = random
+                action = random.choice(legal)
+            else: 
+                max_q_action = None
+                max_q_value = float('-inf')
+                for a in legal:
+                    q_value = self.getQValue(state, a)
+                    if q_value > max_q_value:
+                        max_q_value = q_value
+                        action = a
+            next_state = state.generatePacmanSuccessor(action)
+            if (location, action) not in self.q_table:
+                self.q_table[location, action] = 1
+                self.counts[location, action] = 1
+            else: 
+                self.learn(location, action, self.computeReward(state, next_state), next_state)
+            return action
         else :
+            print(self.q_table)
             max_q_action = None
             max_q_value = float('-inf')
             for action in legal:
