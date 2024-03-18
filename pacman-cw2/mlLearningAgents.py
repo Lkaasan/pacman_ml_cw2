@@ -80,6 +80,7 @@ class QLearnAgent(Agent):
         # Count the number of games we have played
         self.episodesSoFar = 0
         self.q_table = {}
+        self.counts = {}
 
     # Accessor functions for the variable episodesSoFar controlling learning
     def incrementEpisodesSoFar(self):
