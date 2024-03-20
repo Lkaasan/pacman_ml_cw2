@@ -122,6 +122,7 @@ class QLearnAgent(Agent):
             The reward assigned for the given trajectory
         """
         "*** YOUR CODE HERE ***"
+        
         return endState.getScore() - startState.getScore()
 
     # WARNING: You will be tested on the functionality of this method
@@ -155,7 +156,7 @@ class QLearnAgent(Agent):
         if Directions.STOP in legal_actions:
             legal_actions.remove(Directions.STOP)
 
-        max_q_value = float('-inf')
+        max_q_value = 0
         for action in legal_actions:
             q_value = self.getQValue(state, action)
             if q_value > max_q_value:
@@ -197,7 +198,7 @@ class QLearnAgent(Agent):
             action: Action taken
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        self.counts[(state, action)] += 1
 
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
@@ -213,8 +214,8 @@ class QLearnAgent(Agent):
             Number of times that the action has been taken in a given state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
-
+        return self.counts.get((state, action))
+    
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
     def explorationFn(self,
@@ -239,6 +240,7 @@ class QLearnAgent(Agent):
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
     def getAction(self, state: GameState) -> Directions:
+        print("Food locations: ")
         """
         Choose an action to take to maximise reward while
         balancing gathering data for learning
@@ -265,11 +267,13 @@ class QLearnAgent(Agent):
                 max_q_action = None
                 max_q_value = float('-inf')
                 for a in legal:
-                    q_value = self.getQValue(state, a)
+                    q_value = self.getQValue(location, a)
+                    print(q_value)
                     if q_value > max_q_value:
                         max_q_value = q_value
                         action = a
             next_state = state.generatePacmanSuccessor(action)
+            # print(next_state)
             if (location, action) not in self.q_table:
                 self.q_table[location, action] = 1
                 self.counts[location, action] = 1
@@ -277,7 +281,7 @@ class QLearnAgent(Agent):
                 self.learn(location, action, self.computeReward(state, next_state), next_state)
             return action
         else :
-            print(self.q_table)
+            # print(self.q_table)
             max_q_action = None
             max_q_value = float('-inf')
             for action in legal:
