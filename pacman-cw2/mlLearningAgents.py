@@ -81,6 +81,7 @@ class QLearnAgent(Agent):
         self.episodesSoFar = 0
         self.q_table = {}
         self.counts = {}
+        self.temp = 0
 
     # Accessor functions for the variable episodesSoFar controlling learning
     def incrementEpisodesSoFar(self):
@@ -263,19 +264,25 @@ class QLearnAgent(Agent):
             The action to take
         """
         # The data we have about the state of the game
-        print(self.q_table)
         location = state.getPacmanPosition()
         legal = state.getLegalPacmanActions()
         if Directions.STOP in legal:
             legal.remove(Directions.STOP)
             
         if self.alpha != 0:
-            if util.flipCoin(self.epsilon):
+            if (self.q_table == {}):
+                print(legal)
+                action = random.choice(legal)
+            elif util.flipCoin(self.epsilon):
+                self.temp += 1
+                print(self.temp)
                 exploration_values = {}
                 for action in legal:
                     if (location, action) in self.q_table:
                         q_value = self.getQValue(state, action)
                         exploration_values[action] = self.explorationFn(q_value, self.getCount(location, action))
+                    if exploration_values is not {}:
+                        action = max(exploration_values, key=exploration_values.get)
                     else:
                         action = random.choice(legal)
             else: 
@@ -330,6 +337,7 @@ class QLearnAgent(Agent):
         # parameters to zero when we are done with the pre-set number
         # of training episodes
         self.incrementEpisodesSoFar()
+        print(self.q_table)
         if self.getEpisodesSoFar() == self.getNumTraining():
             msg = 'Training Done (turning off epsilon and alpha)'
             # print('%s\n%s' % (msg, '-' * len(msg)))
