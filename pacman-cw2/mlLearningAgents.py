@@ -122,8 +122,13 @@ class QLearnAgent(Agent):
             The reward assigned for the given trajectory
         """
         "*** YOUR CODE HERE ***"
-        
-        return endState.getScore() - startState.getScore()
+        reward = 0.04
+        pacman_position = endState.getPacmanPosition()
+        if (endState.getGhostPosition(1) == pacman_position):
+            reward -= 100
+        if endState.hasFood(pacman_position[0], pacman_position[1]):
+            reward += 10
+        return reward
 
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
@@ -153,14 +158,13 @@ class QLearnAgent(Agent):
         """
         "*** YOUR CODE HERE ***"
         legal_actions = state.getLegalPacmanActions()
+        # print(state)
+        if legal_actions == []:
+            return 0
         if Directions.STOP in legal_actions:
             legal_actions.remove(Directions.STOP)
-
-        max_q_value = 0
-        for action in legal_actions:
-            q_value = self.getQValue(state, action)
-            if q_value > max_q_value:
-                max_q_value = q_value
+        # print(legal_actions)
+        max_q_value = max((self.getQValue(state, action) for action in legal_actions))
         return max_q_value
 
     # WARNING: You will be tested on the functionality of this method
@@ -182,7 +186,7 @@ class QLearnAgent(Agent):
         "*** YOUR CODE HERE ***"
         old_q_value = self.getQValue(state, action)
         max_future_q = self.maxQValue(nextState)
-        new_q_value = old_q_value + self.alpha * (reward + self.gamma * max_future_q - old_q_value)
+        new_q_value = old_q_value + self.alpha * (reward + max_future_q - old_q_value)
         self.q_table[(state, action)] = new_q_value
 
     # WARNING: You will be tested on the functionality of this method
@@ -199,7 +203,7 @@ class QLearnAgent(Agent):
         """
         "*** YOUR CODE HERE ***"
         self.counts[(state, action)] += 1
-
+        
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
     def getCount(self,
@@ -215,7 +219,7 @@ class QLearnAgent(Agent):
         """
         "*** YOUR CODE HERE ***"
         return self.counts.get((state, action))
-    
+
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
     def explorationFn(self,
@@ -240,7 +244,6 @@ class QLearnAgent(Agent):
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
     def getAction(self, state: GameState) -> Directions:
-        print("Food locations: ")
         """
         Choose an action to take to maximise reward while
         balancing gathering data for learning
@@ -267,23 +270,19 @@ class QLearnAgent(Agent):
                 max_q_action = None
                 max_q_value = float('-inf')
                 for a in legal:
-                    q_value = self.getQValue(location, a)
-                    print(q_value)
+                    q_value = self.getQValue(state, a)
                     if q_value > max_q_value:
                         max_q_value = q_value
                         action = a
             next_state = state.generatePacmanSuccessor(action)
-            # print(next_state)
             if (location, action) not in self.q_table:
-                self.q_table[location, action] = 1
-                self.counts[location, action] = 1
-            else: 
-                self.learn(location, action, self.computeReward(state, next_state), next_state)
+                self.q_table[location, action] = 0
+                self.counts[location, action] = 1 
+            self.learn(location, action, self.computeReward(state, next_state), next_state)
             return action
         else :
-            # print(self.q_table)
             max_q_action = None
-            max_q_value = float('-inf')
+            max_q_value = -1000000
             for action in legal:
                 q_value = self.getQValue(state, action)
                 if q_value > max_q_value:
