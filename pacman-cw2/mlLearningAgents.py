@@ -239,7 +239,12 @@ class QLearnAgent(Agent):
             The exploration value
         """
         "*** YOUR CODE HERE ***"
-        return utility / (counts + 1)
+        least_pick_weight = 1.0  # Weight for least-pick strategy (you can adjust this)
+    
+        # Compute exploration value
+        exploration_value = utility / (counts + least_pick_weight)
+        
+        return exploration_value
 
     # WARNING: You will be tested on the functionality of this method
     # DO NOT change the function signature
@@ -258,6 +263,7 @@ class QLearnAgent(Agent):
             The action to take
         """
         # The data we have about the state of the game
+        print(self.q_table)
         location = state.getPacmanPosition()
         legal = state.getLegalPacmanActions()
         if Directions.STOP in legal:
@@ -265,7 +271,13 @@ class QLearnAgent(Agent):
             
         if self.alpha != 0:
             if util.flipCoin(self.epsilon):
-                action = random.choice(legal)
+                exploration_values = {}
+                for action in legal:
+                    if (location, action) in self.q_table:
+                        q_value = self.getQValue(state, action)
+                        exploration_values[action] = self.explorationFn(q_value, self.getCount(location, action))
+                    else:
+                        action = random.choice(legal)
             else: 
                 max_q_action = None
                 max_q_value = float('-inf')
@@ -279,6 +291,7 @@ class QLearnAgent(Agent):
                 self.q_table[location, action] = 0
                 self.counts[location, action] = 1 
             self.learn(location, action, self.computeReward(state, next_state), next_state)
+            self.updateCount(location, action)
             return action
         else :
             max_q_action = None
