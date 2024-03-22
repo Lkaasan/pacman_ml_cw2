@@ -48,12 +48,14 @@ class GameStateFeatures:
             state: A given game state object
         """
         "*** YOUR CODE HERE ***"
+        self.food = state.getFood()
+        
 
 class QLearnAgent(Agent):
 
     def __init__(self,
-                 alpha: float = 0.2,
-                 epsilon: float = 0.05,
+                 alpha: float = 0.8,
+                 epsilon: float = 0.5,
                  gamma: float = 0.8,
                  maxAttempts: int = 30,
                  numTraining: int = 10):
@@ -81,7 +83,6 @@ class QLearnAgent(Agent):
         self.episodesSoFar = 0
         self.q_table = {}
         self.counts = {}
-        self.temp = 0
 
     # Accessor functions for the variable episodesSoFar controlling learning
     def incrementEpisodesSoFar(self):
@@ -123,12 +124,12 @@ class QLearnAgent(Agent):
             The reward assigned for the given trajectory
         """
         "*** YOUR CODE HERE ***"
-        reward = 0.04
+        reward = -0.04
         pacman_position = endState.getPacmanPosition()
         if (endState.getGhostPosition(1) == pacman_position):
-            reward -= 100
+            reward -= 10
         if endState.hasFood(pacman_position[0], pacman_position[1]):
-            reward += 10
+            reward += 100
         return reward
 
     # WARNING: You will be tested on the functionality of this method
@@ -240,10 +241,9 @@ class QLearnAgent(Agent):
             The exploration value
         """
         "*** YOUR CODE HERE ***"
-        least_pick_weight = 1.0  # Weight for least-pick strategy (you can adjust this)
     
         # Compute exploration value
-        exploration_value = utility / (counts + least_pick_weight)
+        exploration_value = utility / (counts + 1)
         
         return exploration_value
 
@@ -264,6 +264,7 @@ class QLearnAgent(Agent):
             The action to take
         """
         # The data we have about the state of the game
+        # print(state)
         location = state.getPacmanPosition()
         legal = state.getLegalPacmanActions()
         if Directions.STOP in legal:
@@ -271,17 +272,18 @@ class QLearnAgent(Agent):
             
         if self.alpha != 0:
             if (self.q_table == {}):
-                print(legal)
+                # print(legal)
                 action = random.choice(legal)
             elif util.flipCoin(self.epsilon):
-                self.temp += 1
-                print(self.temp)
+                # print(self.temp)
                 exploration_values = {}
                 for action in legal:
                     if (location, action) in self.q_table:
-                        q_value = self.getQValue(state, action)
-                        exploration_values[action] = self.explorationFn(q_value, self.getCount(location, action))
-                    if exploration_values is not {}:
+                        if self.counts.get((location, action)) < 200:
+                            q_value = self.getQValue(state, action)
+                            exploration_values[action] = self.explorationFn(q_value, self.getCount(location, action))
+                        # print(exploration_values)
+                    if exploration_values != {}:
                         action = max(exploration_values, key=exploration_values.get)
                     else:
                         action = random.choice(legal)
@@ -289,25 +291,38 @@ class QLearnAgent(Agent):
                 max_q_action = None
                 max_q_value = float('-inf')
                 for a in legal:
-                    q_value = self.getQValue(state, a)
+                    q_value = self.getQValue(location, a)
                     if q_value > max_q_value:
                         max_q_value = q_value
                         action = a
             next_state = state.generatePacmanSuccessor(action)
             if (location, action) not in self.q_table:
                 self.q_table[location, action] = 0
-                self.counts[location, action] = 1 
+                self.counts[location, action] = 1
+                for a in legal:
+                    if a != action:
+                        self.counts[location, a] = 0
+                        self.q_table[location, a] = 0 
+            else:   
+                self.updateCount(location, action)
             self.learn(location, action, self.computeReward(state, next_state), next_state)
-            self.updateCount(location, action)
             return action
         else :
+            # print(state.getFood()[1][1])
+            # print(self.q_table)
+            # print(self.counts)
             max_q_action = None
             max_q_value = -1000000
             for action in legal:
-                q_value = self.getQValue(state, action)
-                if q_value > max_q_value:
-                    max_q_value = q_value
-                    max_q_action = action
+                next_state = state.generatePacmanSuccessor(action)
+                if (next_state.getGhostPosition(1) != next_state.getPacmanPosition()):
+                    q_value = self.getQValue(location, action)
+                    # print(action, q_value)
+                    if q_value > max_q_value:
+                        max_q_value = q_value
+                        max_q_action = action
+            if max_q_action is None:
+                return random.choice(legal)
             return max_q_action
                 
 
@@ -337,7 +352,7 @@ class QLearnAgent(Agent):
         # parameters to zero when we are done with the pre-set number
         # of training episodes
         self.incrementEpisodesSoFar()
-        print(self.q_table)
+        # print(self.q_table)
         if self.getEpisodesSoFar() == self.getNumTraining():
             msg = 'Training Done (turning off epsilon and alpha)'
             # print('%s\n%s' % (msg, '-' * len(msg)))
