@@ -223,8 +223,6 @@ class QLearnAgent(Agent):
         # Return visitation counter for state action pair
         return self.counts.get((state, action))
 
-    # WARNING: You will be tested on the functionality of this method
-    # DO NOT change the function signature
     def explorationFn(self,
                       utility: float,
                       counts: int) -> float:
@@ -247,8 +245,6 @@ class QLearnAgent(Agent):
         
         return exploration_value
 
-    # WARNING: You will be tested on the functionality of this method
-    # DO NOT change the function signature
     def getAction(self, state: GameState) -> Directions:
         """
         Args:
@@ -302,7 +298,7 @@ class QLearnAgent(Agent):
             # Gets successor state
             next_state = state.generatePacmanSuccessor(action)
             
-            # Checks if state action hasnt been explored yet,
+            # Checks if state action hasnt been explored yet
             if (location, action) not in self.q_table:
                 # Initialise state action pair to q table and count table, and all other actions possible from that state
                 self.q_table[location, action] = 0
@@ -325,6 +321,7 @@ class QLearnAgent(Agent):
         else :
             # Gets highest q value move
             print(self.q_table)
+            print(self.counts)
             max_q_action = None
             max_q_value = float('-inf')
             for action in legal:
