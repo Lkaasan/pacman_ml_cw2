@@ -81,6 +81,8 @@ class QLearnAgent(Agent):
         self.numTraining = int(numTraining)
         # Count the number of games we have played
         self.episodesSoFar = 0
+        
+        # Initialise Empty Q Table and Counts libraries
         self.q_table = {}
         self.counts = {}
 
