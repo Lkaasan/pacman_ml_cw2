@@ -139,7 +139,7 @@ class QLearnAgent(Agent):
         # Checks if food is in the future states position
         if startState.hasFood(pacman_position[0], pacman_position[1]) == True:
             # Positive Reward
-            reward += 200
+            reward += 500
             
         # Return Reward 
         return reward
