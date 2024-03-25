@@ -139,7 +139,7 @@ class QLearnAgent(Agent):
         # Checks if food is in the future states position
         if startState.hasFood(pacman_position[0], pacman_position[1]) == True:
             # Positive Reward
-            reward += 100
+            reward += 200
             
         # Return Reward 
         return reward
@@ -320,8 +320,6 @@ class QLearnAgent(Agent):
         # If learning is done
         else :
             # Gets highest q value move
-            print(self.q_table)
-            print(self.counts)
             max_q_action = None
             max_q_value = float('-inf')
             for action in legal:
@@ -347,15 +345,12 @@ class QLearnAgent(Agent):
         Args:
             state: the final game state
         """
-        # print(f"Game {self.getEpisodesSoFar()} just ended!")
-
-        # Keep track of the number of games played, and set learning
-        # parameters to zero when we are done with the pre-set number
-        # of training episodes
+        
+        #checks if training is complete
         self.incrementEpisodesSoFar()
-        # print(self.q_table)
         if self.getEpisodesSoFar() == self.getNumTraining():
+            
+            #Deactivated training
             msg = 'Training Done (turning off epsilon and alpha)'
-            # print('%s\n%s' % (msg, '-' * len(msg)))
             self.setAlpha(0)
             self.setEpsilon(0)
